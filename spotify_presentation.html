@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spotify User Behavior — DND Data Arena 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --green: #1DB954;
+  --green2: #17a349;
+  --black: #0a0a0a;
+  --surface: #161616;
+  --surface2: #1f1f1f;
+  --muted: #888;
+  --text: #f5f5f5;
+}
+body {
+  background: var(--black);
+  font-family: 'Space Mono', monospace;
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* SLIDE ENGINE */
+.slides { width: 100%; height: 100vh; position: relative; }
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  padding: 60px 80px;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* NAV */
+.nav {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 100;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  padding: 10px 24px;
+  border-radius: 40px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.nav-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  padding: 7px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-btn:hover { background: var(--green); border-color: var(--green); color: #000; }
+.dots { display: flex; gap: 8px; align-items: center; }
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.dot.active { background: var(--green); width: 20px; border-radius: 3px; }
+.slide-counter { font-size: 10px; color: var(--muted); min-width: 36px; text-align: center; }
+
+/* SHARED */
+.green { color: var(--green); }
+.tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.tag-green { background: rgba(29,185,84,0.15); color: var(--green); border: 1px solid rgba(29,185,84,0.3); }
+.tag-gray { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid rgba(255,255,255,0.1); }
+.slide-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ─── SLIDE 1 — TITLE ─── */
+#s1 {
+  justify-content: center;
+  background: var(--black);
+  position: relative;
+  overflow: hidden;
+}
+#s1::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(29,185,84,0.12) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  border-radius: 50%;
+}
+#s1::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(29,185,84,0.06) 0%, transparent 70%);
+  bottom: -80px; left: -80px;
+  border-radius: 50%;
+}
+.s1-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--green); margin-bottom: 24px; }
+.s1-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 68px;
+  font-weight: 800;
+  line-height: 1.0;
+  margin-bottom: 12px;
+  letter-spacing: -2px;
+}
+.s1-title .line2 { color: var(--green); }
+.s1-sub { font-size: 14px; color: var(--muted); margin-bottom: 48px; letter-spacing: 1px; }
+.s1-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.s1-badge {
+  padding: 8px 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface);
+}
+.s1-badge span { color: var(--text); }
+.s1-icon {
+  position: absolute;
+  right: 100px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 180px;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* ─── SLIDE 2 — PROBLEM & DATASET ─── */
+#s2 { background: var(--black); }
+.s2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 8px; flex: 1; }
+.s2-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+.s2-panel {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.s2-panel-title {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--green);
+  border-bottom: 1px solid rgba(29,185,84,0.2);
+  padding-bottom: 12px;
+}
+.s2-item { display: flex; gap: 14px; align-items: flex-start; }
+.s2-icon { font-size: 20px; margin-top: 1px; flex-shrink: 0; }
+.s2-item-text { font-size: 13px; line-height: 1.7; color: var(--muted); }
+.s2-item-text strong { color: var(--text); }
+.stat-row { display: flex; gap: 16px; margin-top: 8px; }
+.stat-box {
+  flex: 1;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.stat-box .num { font-size: 26px; font-weight: 700; color: var(--green); }
+.stat-box .lbl { font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+
+/* ─── SLIDE 3 — KEY INSIGHTS ─── */
+#s3 { background: var(--black); justify-content: flex-start; }
+.s3-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 32px;
+}
+.s3-insights { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+.insight-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  flex: 1;
+}
+.insight-num-block {
+  background: rgba(29,185,84,0.08);
+  border-right: 1px solid rgba(29,185,84,0.15);
+  padding: 28px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+}
+.insight-big-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+}
+.insight-content {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.insight-headline {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.insight-detail { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.insight-tag { margin-top: 8px; }
+
+/* ─── SLIDE 4 — DASHBOARD ─── */
+#s4 { background: var(--black); }
+.s4-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+.s4-frame {
+  flex: 1;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.s4-bar {
+  background: linear-gradient(90deg, #1DB954, #17a349);
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.s4-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  padding: 16px 20px;
+  background: #111;
+}
+.s4-kpi {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 12px;
+  border-top: 2px solid var(--green);
+}
+.s4-kpi .k-val { font-size: 20px; font-weight: 700; color: var(--green); }
+.s4-kpi .k-lbl { font-size: 9px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 1px; }
+.s4-charts {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.5fr;
+  gap: 12px;
+  padding: 0 20px 16px;
+  flex: 1;
+}
+.s4-chart-mock {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.s4-chart-mock .ct { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.donut-mock {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.donut-svg { width: 80px; height: 80px; }
+.bar-mock { flex: 1; display: flex; align-items: flex-end; gap: 6px; padding-top: 8px; }
+.bar-mock .b { border-radius: 3px 3px 0 0; flex: 1; }
+.annot {
+  position: absolute;
+  background: rgba(29,185,84,0.9);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.annot::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: -6px;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(29,185,84,0.9);
+  border-bottom: none;
+}
+
+/* ─── SLIDE 5 — METHODOLOGY ─── */
+#s5 { background: var(--black); }
+.s5-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 32px;
+}
+.s5-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 32px;
+}
+.s5-step {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 28px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.s5-step:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--green);
+  font-size: 20px;
+  z-index: 2;
+}
+.s5-step + .s5-step { margin-left: 20px; }
+.s5-step-num { font-size: 10px; color: var(--green); letter-spacing: 2px; text-transform: uppercase; }
+.s5-step-icon { font-size: 32px; }
+.s5-step-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+.s5-step-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.s5-tools-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.s5-tools { display: flex; gap: 12px; flex-wrap: wrap; }
+.tool-badge {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─── SLIDE 6 — RECOMMENDATIONS ─── */
+#s6 { background: var(--black); position: relative; overflow: hidden; }
+#s6::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(29,185,84,0.08) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+  border-radius: 50%;
+}
+.s6-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 28px;
+}
+.s6-recs { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+.rec-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  border-left: 4px solid var(--green);
+  transition: border-color 0.2s;
+}
+.rec-emoji { font-size: 36px; flex-shrink: 0; }
+.rec-body { flex: 1; }
+.rec-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.rec-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.rec-impact {
+  flex-shrink: 0;
+  text-align: right;
+}
+.rec-impact .imp-num { font-size: 28px; font-weight: 700; color: var(--green); }
+.rec-impact .imp-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.s6-footer {
+  margin-top: 20px;
+  padding: 16px 24px;
+  background: rgba(29,185,84,0.08);
+  border: 1px solid rgba(29,185,84,0.2);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.s6-footer strong { color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- SLIDE 1: TITLE -->
+  <div class="slide active" id="s1">
+    <div class="s1-eyebrow">DND Data Arena 2025 · 24-Hour Sprint · Dataset 02</div>
+    <div class="s1-title">
+      Spotify User<br>
+      <span class="line2">Behavior</span><br>
+      Analysis
+    </div>
+    <div class="s1-sub">Decoding how 519 users listen, feel, and decide</div>
+    <div class="s1-meta">
+      <div class="s1-badge">Event <span>DND Data Arena 2025</span></div>
+      <div class="s1-badge">Dataset <span>Kaggle · Meera Ajayakumar</span></div>
+      <div class="s1-badge">Tools <span>Python · Chart.js · GitHub Pages</span></div>
+    </div>
+    <div class="s1-icon">🎧</div>
+  </div>
+
+  <!-- SLIDE 2: PROBLEM & DATASET -->
+  <div class="slide" id="s2">
+    <div class="slide-label">Slide 02 · Problem & Dataset</div>
+    <div class="s2-title">What Are<br>We <span class="green">Solving?</span></div>
+    <div class="s2-grid">
+      <div class="s2-panel">
+        <div class="s2-panel-title">The Problem</div>
+        <div class="s2-item">
+          <div class="s2-icon">📋</div>
+          <div class="s2-item-text"><strong>Analyze</strong> how users interact with Spotify and identify distinct behavioral patterns</div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-icon">👥</div>
+          <div class="s2-item-text"><strong>Segment</strong> users into high vs low engagement groups with clear profiles</div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-icon">⚠️</div>
+          <div class="s2-item-text"><strong>Detect</strong> retention signals and drop-off risks before users churn</div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-icon">💡</div>
+          <div class="s2-item-text"><strong>Surface</strong> actionable recommendations Spotify can act on</div>
+        </div>
+      </div>
+      <div class="s2-panel">
+        <div class="s2-panel-title">The Dataset</div>
+        <div class="s2-item">
+          <div class="s2-icon">📂</div>
+          <div class="s2-item-text"><strong>Source:</strong> Kaggle — Meera Ajayakumar<br>Spotify User Behavior Dataset</div>
+        </div>
+        <div class="s2-item">
+          <div class="s2-icon">🔍</div>
+          <div class="s2-item-text"><strong>Coverage:</strong> Listening habits, device usage, subscription plans, mood triggers, podcast preferences</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="num">519</div><div class="lbl">Users</div></div>
+          <div class="stat-box"><div class="num">20</div><div class="lbl">Features</div></div>
+          <div class="stat-box"><div class="num">100%</div><div class="lbl">Cleaned</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: KEY INSIGHTS -->
+  <div class="slide" id="s3">
+    <div class="slide-label">Slide 03 · Key Findings</div>
+    <div class="s3-title">3 Findings That <span class="green">Matter</span></div>
+    <div class="s3-insights">
+      <div class="insight-row">
+        <div class="insight-num-block"><div class="insight-big-num">60%</div></div>
+        <div class="insight-content">
+          <div class="insight-headline">🌙 Users Listen at Night</div>
+          <div class="insight-detail">311 out of 519 users are most active after dark. This is Spotify's prime engagement window — ideal for push notifications, curated night playlists, and Premium conversion campaigns.</div>
+          <div class="insight-tag"><span class="tag tag-green">Prime Engagement Window</span></div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-num-block"><div class="insight-big-num">35.8%</div></div>
+        <div class="insight-content">
+          <div class="insight-headline">💰 Willing to Go Premium — But Haven't</div>
+          <div class="insight-detail">186 users are already willing to pay but remain on the free tier. This is untapped revenue sitting idle. A targeted discount or free trial could convert them immediately.</div>
+          <div class="insight-tag"><span class="tag tag-green">Untapped Revenue Opportunity</span></div>
+        </div>
+      </div>
+      <div class="insight-row">
+        <div class="insight-num-block"><div class="insight-big-num">169</div></div>
+        <div class="insight-content">
+          <div class="insight-headline">📈 Loyalty Snowballs After 6 Months</div>
+          <div class="insight-detail">The longer users stay, the more they stay. 169 users have used Spotify for 2+ years. Retention interventions must target the critical 0–6 month window before users drop off.</div>
+          <div class="insight-tag"><span class="tag tag-green">Critical Retention Signal</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DASHBOARD -->
+  <div class="slide" id="s4">
+    <div class="slide-label">Slide 04 · The Dashboard</div>
+    <div class="s4-title">Built to <span class="green">Tell the Story</span></div>
+    <div class="s4-frame">
+      <div class="s4-bar">🎧 Spotify User Behavior Dashboard &nbsp;·&nbsp; DND Data Arena 2025</div>
+      <div class="s4-kpi-row">
+        <div class="s4-kpi"><div class="k-val">519</div><div class="k-lbl">Total Users</div></div>
+        <div class="s4-kpi"><div class="k-val">35.8%</div><div class="k-lbl">Premium Willing</div></div>
+        <div class="s4-kpi"><div class="k-val">3.5★</div><div class="k-lbl">Avg Rating</div></div>
+        <div class="s4-kpi"><div class="k-val">Night</div><div class="k-lbl">Peak Time</div></div>
+        <div class="s4-kpi"><div class="k-val">78.8%</div><div class="k-lbl">Music-First</div></div>
+      </div>
+      <div class="s4-charts">
+        <div class="s4-chart-mock">
+          <div class="ct">⬆ KPIs — business health at a glance</div>
+          <div class="donut-mock">
+            <svg class="donut-svg" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="28" fill="none" stroke="#1f1f1f" stroke-width="14"/>
+              <circle cx="40" cy="40" r="28" fill="none" stroke="#1DB954" stroke-width="14" stroke-dasharray="105 71" stroke-dashoffset="21" transform="rotate(-90 40 40)"/>
+              <circle cx="40" cy="40" r="28" fill="none" stroke="#4A90D9" stroke-width="14" stroke-dasharray="40 136" stroke-dashoffset="-84" transform="rotate(-90 40 40)"/>
+              <text x="40" y="44" text-anchor="middle" fill="#1DB954" font-size="10" font-weight="bold">60%</text>
+            </svg>
+          </div>
+          <div style="font-size:9px;color:#666;text-align:center;">🌙 Night listening dominates</div>
+        </div>
+        <div class="s4-chart-mock">
+          <div class="ct">⬆ Music vs Podcast by Age</div>
+          <div class="bar-mock">
+            <div class="b" style="height:30%;background:#1DB954;"></div>
+            <div class="b" style="height:20%;background:#FF6B6B;"></div>
+            <div class="b" style="height:95%;background:#1DB954;"></div>
+            <div class="b" style="height:55%;background:#FF6B6B;"></div>
+            <div class="b" style="height:12%;background:#1DB954;"></div>
+            <div class="b" style="height:14%;background:#FF6B6B;"></div>
+          </div>
+          <div style="font-size:9px;color:#666;margin-top:6px;">🎵 20–35 age group dominates music consumption</div>
+        </div>
+        <div class="s4-chart-mock">
+          <div class="ct">⬆ User Loyalty Over Time</div>
+          <div class="bar-mock">
+            <div class="b" style="height:54%;background:#FF6B6B;"></div>
+            <div class="b" style="height:70%;background:#F5A623;"></div>
+            <div class="b" style="height:83%;background:#4A90D9;"></div>
+            <div class="b" style="height:100%;background:#1DB954;"></div>
+          </div>
+          <div style="font-size:9px;color:#666;margin-top:6px;">📈 Loyalty grows — 169 users stayed 2+ years</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: METHODOLOGY -->
+  <div class="slide" id="s5">
+    <div class="slide-label">Slide 05 · Methodology</div>
+    <div class="s5-title">How We <span class="green">Built It</span></div>
+    <div class="s5-steps">
+      <div class="s5-step">
+        <div class="s5-step-num">Step 01</div>
+        <div class="s5-step-icon">📥</div>
+        <div class="s5-step-title">Data Acquired</div>
+        <div class="s5-step-desc">Downloaded Spotify User Behavior dataset from Kaggle. 520 rows × 20 columns in XLSX format.</div>
+      </div>
+      <div class="s5-step">
+        <div class="s5-step-num">Step 02</div>
+        <div class="s5-step-icon">🧹</div>
+        <div class="s5-step-title">Cleaned in Colab</div>
+        <div class="s5-step-desc">Handled nulls, removed duplicates, split multi-select columns, standardized all column names.</div>
+      </div>
+      <div class="s5-step">
+        <div class="s5-step-num">Step 03</div>
+        <div class="s5-step-icon">📊</div>
+        <div class="s5-step-title">EDA & Charts</div>
+        <div class="s5-step-desc">Built 5 charts using Matplotlib & Seaborn. Identified 3 headline insights from the data.</div>
+      </div>
+      <div class="s5-step">
+        <div class="s5-step-num">Step 04</div>
+        <div class="s5-step-icon">🚀</div>
+        <div class="s5-step-title">Dashboard Live</div>
+        <div class="s5-step-desc">Built interactive dashboard with Chart.js. Deployed via GitHub Pages. Fully shareable URL.</div>
+      </div>
+    </div>
+    <div class="s5-tools-title">Tools Used</div>
+    <div class="s5-tools">
+      <div class="tool-badge">🐍 Python</div>
+      <div class="tool-badge">🐼 Pandas</div>
+      <div class="tool-badge">📊 Matplotlib</div>
+      <div class="tool-badge">🌊 Seaborn</div>
+      <div class="tool-badge">📈 Chart.js</div>
+      <div class="tool-badge">☁️ Google Colab</div>
+      <div class="tool-badge">🐙 GitHub Pages</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: RECOMMENDATIONS -->
+  <div class="slide" id="s6">
+    <div class="slide-label">Slide 06 · Conclusion</div>
+    <div class="s6-title">What Spotify <span class="green">Should Do</span></div>
+    <div class="s6-recs">
+      <div class="rec-card">
+        <div class="rec-emoji">🌙</div>
+        <div class="rec-body">
+          <div class="rec-title">Target the Night Window</div>
+          <div class="rec-desc">60% of users are most active after dark. Launch night-specific playlists, push notifications at 9PM, and Premium trial offers timed to evening sessions.</div>
+        </div>
+        <div class="rec-impact"><div class="imp-num">311</div><div class="imp-lbl">Night users</div></div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-emoji">⏱️</div>
+        <div class="rec-body">
+          <div class="rec-title">Intervene at the 6-Month Mark</div>
+          <div class="rec-desc">Users who survive past 6 months become long-term loyalists. Trigger a retention campaign at month 4–5: exclusive features, personalized playlists, or a Premium discount.</div>
+        </div>
+        <div class="rec-impact"><div class="imp-num">91</div><div class="imp-lbl">At-risk users</div></div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-emoji">💰</div>
+        <div class="rec-body">
+          <div class="rec-title">Convert the Willing 35.8%</div>
+          <div class="rec-desc">186 users are already willing to pay Premium but haven't converted. A targeted 1-month free trial or ₹59 student plan push could flip them immediately — no persuasion needed.</div>
+        </div>
+        <div class="rec-impact"><div class="imp-num">186</div><div class="imp-lbl">Ready to pay</div></div>
+      </div>
+    </div>
+    <div class="s6-footer">
+      <strong>Story in one sentence:</strong> Spotify users split into distinct behavioral tribes — and the data reveals exactly which ones the platform is at risk of losing, and how to keep them.
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn" onclick="go(-1)">← Prev</button>
+  <div class="dots" id="dots"></div>
+  <span class="slide-counter" id="counter">1 / 6</span>
+  <button class="nav-btn" onclick="go(1)">Next →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('dots');
+const counter = document.getElementById('counter');
+let cur = 0;
+
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dotsEl.appendChild(d);
+});
+
+function goTo(n) {
+  slides[cur].classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur = (n + slides.length) % slides.length;
+  slides[cur].classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  counter.textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+function go(dir) { goTo(cur + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+});
+</script>
+</body>
+</html>
